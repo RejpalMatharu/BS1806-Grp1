@@ -1,0 +1,93 @@
+---
+title: "Group Assignment 1"
+subtitle: 'Machine Learning'
+output: pdf_document
+---
+```{r,message=FALSE,warning=FALSE}
+library(dplyr)
+library(class)
+library(gmodels)
+library(caret)
+```
+
+
+```{r,warning=FALSE,message=FALSE}
+#adjust the original data
+white.raw <- read.csv("winequality-white.csv", header = TRUE, sep = ";")
+col_names <- c('fixed acidity',"volatile acidity","citric acid","residual sugar","chlorides",'free sulfur dioxide','total sulfur dioxide',"density","pH","sulphates","alcohol","quality")
+colnames(white.raw) <- col_names
+
+```
+
+```{r,message=FALSE,warning=FALSE}
+#construct a new binary column ¡°good wine¡± that indicates whether the wine is good 
+#(which we define as having a quality of 6 or higher) or not
+
+white.new <- mutate(white.raw, goodwine=ifelse(quality>=6,yes=1,no=0))
+white.new$goodwine<- factor(white.new$goodwine, levels = c(1, 0))
+
+#shuffle data
+shuffle.white.new <- white.new[sample(nrow(white.new)),]
+
+#normalise the data
+normalize <- function(x) {return ((x-mean(x)) / (sqrt(sum((x - mean(x))^2)/length(x))))}
+
+nor.white <- as.data.frame(lapply(shuffle.white.new[1:11],normalize))
+col_names <- c('fixed acidity',"volatile acidity","citric acid","residual sugar","chlorides",'free sulfur dioxide','total sulfur dioxide',"density","pH","sulphates","alcohol")
+colnames(nor.white) <- col_names
+
+
+#splits the data set into a training data set (~40%), a validation data set (~30%) and a test data set (~30%) 
+white.train <- nor.white[1:1959,] #40%
+white.validation <- nor.white[1960:3429,]#30%
+white.test <- nor.white[3430:4898,]#30%
+
+#labels
+train.labels <- shuffle.white.new[1:1959,13]
+validation.labels <- shuffle.white.new[1960:3429,13]
+test.labels <- shuffle.white.new[3430:4898,13]
+
+```
+
+
+```{r,message=FALSE,warning=FALSE}
+#training data
+range <- 1:80
+
+accuracy <- rep(0,80)
+
+for (k in range){
+  pred <- knn(train=white.train,test=white.validation,cl=train.labels,k=k)
+  #confustion matrix
+  conf_matrix <- table(validation.labels,pred)
+  #accuracy
+  accuracy[k] <-sum(diag(conf_matrix)/sum(conf_matrix)) 
+}
+
+plot(range,accuracy,xlab='k')
+
+#check which k has the highest accuracy 
+a <- data.frame(range,accuracy)
+a[order(accuracy,decreasing = TRUE),]
+
+#test set
+test_set <- knn(train=white.train,test=white.test,cl=train.labels,k=19)
+conf_matrix_test <- table(test.labels,test_set)
+accuracy_test <- sum(diag(conf_matrix_test)/sum(conf_matrix_test))
+accuracy_test
+
+#generalisation error
+1-accuracy_test
+
+
+```
+
+
+
+
+
+
+
+
+
+
