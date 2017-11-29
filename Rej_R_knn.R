@@ -12,13 +12,13 @@ View(ww_df)
 #Add column for good_wine and assign values
 ww_df[,"good_wine"] <- NA
 
-ww_df[,"good_wine"] <- ifelse(white_wine_df[,"quality"]>="6","1","0")
+ww_df[,"good_wine"] <- ifelse(ww_df[,"quality"]>="6","1","0")
 
 View(ww_df)
 
 
 #random df and split into training, validation and test data sets
-ww_rand <- white_wine_df[sample(1:nrow(white_wine_df)), ]
+ww_rand <- ww_df[sample(1:nrow(ww_df)), ]
 
 View(ww_rand)
 
@@ -33,7 +33,7 @@ View(z_ww_rand)
 
 ##Split dataset into training, validation and test datasets
 #training dataset
-ww_train <- z_ww_rand[1:1959,]
+ww_train <- z_ww_rand[1:1959,1:11]
 View(ww_train)
 
 #training labels
@@ -41,7 +41,7 @@ ww_train_lab <- z_ww_rand[1:1959,13]
 View(ww_train_lab)
 
 #validation dataset
-ww_val <- z_ww_rand[1960:3430,]
+ww_val <- z_ww_rand[1960:3430,1:11]
 View(ww_val)
 
 #validation labels
@@ -50,7 +50,7 @@ View(ww_val_lab)
 
 
 #test dataset
-ww_test <- z_ww_rand[3431:4898,]
+ww_test <- z_ww_rand[3431:4898,1:11]
 View(ww_test)
 
 #test labels
@@ -74,25 +74,28 @@ con_mat
 errorrate <- sum(con_mat[row(con_mat) != col(con_mat)]) / sum(con_mat)
 errorrate
 
-
-#iterate for k = 1 to 80 models
+#iterate for k = 1 to 80 to find the optimal K solution using validation
+error_rate <- vector(length=80)
+k_vec <- vector(length=80)
 
 for(i in 1:80){
   #Apply knn with k = i
   predict<-knn(train = ww_train, test = ww_val, cl = ww_train_lab, k = i)
   con_mat <- table(ww_val_lab,predict)
-  errorrate <- sum(con_mat[row(con_mat) != col(con_mat)]) / sum(con_mat)
-  error_rate[i] <- c(errorrate)
+  er <- sum(con_mat[row(con_mat) != col(con_mat)]) / sum(con_mat)
+  error_rate[i] <- c(er)
   k_vec[i] <- c(i)
 }
 
 error_rate_matrix <- cbind(k_vec,error_rate)
 error_rate_matrix <- data.frame(error_rate_matrix)
+error_rate_matrix
+min(error_rate_matrix$error_rate)
 
 optimal_k <- which.min(error_rate_matrix$error_rate)
 optimal_k
 
-#optimal_k model using validation data 
+#CONFIRMATION - optimal_k model using validation data 
 knn_pred_optimal <- knn(train = ww_train, test = ww_val, cl = ww_train_lab, k = optimal_k)
 View(knn_pred_optimal)
 
@@ -108,6 +111,7 @@ library(gmodels)
 #Confusion matrix
 CrossTable(x = ww_val_lab, y = knn_pred_optimal, prop.chisq = FALSE)
 
+#--------------------------------------------------------------------
 #optimal_k model using test data 
 knn_pred_test <- knn(train = ww_train, test = ww_test, cl = ww_train_lab, k = optimal_k)
 View(knn_pred_test)
