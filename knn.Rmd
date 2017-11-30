@@ -1,0 +1,96 @@
+---
+title: "ml_knn"
+author: "AK"
+date: "27 listopada 2017"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(class)
+```
+
+
+```{r, echo=T}
+# 1.load the data file
+whiteData <- read.csv("winequality-white.csv", sep = ";", stringsAsFactors = FALSE)
+```
+
+```{r}
+# 2. construct a new binary column “good wine” that indicates whether the wine is good
+# (which we define as having a quality of 6 or higher) or not
+whiteData2 <- whiteData %>% mutate(goodWine = ifelse(quality >= 6, 1, ifelse(quality<6, 0, NA_real_)))
+```
+
+```{r}
+# 4.normalise the data according to the Z-score transform
+zScoreNormalize <- function(x) {
+return ((x - mean(x)) / sd(x))
+}
+
+whiteData2N <- as.data.frame(lapply(whiteData2[,0:11], zScoreNormalize))
+```
+
+```{r}
+#3. splits the data set into a training data set (~40%), a validation data set (~30%) and a
+#test data set (~30%) — make sure you shuffle the record before the split;
+
+# The fractions of the dataframe you want to split into training, validation, and test.
+fractionTraining   <- 0.40
+fractionValidation <- 0.30
+fractionTest       <- 0.30
+
+# Computes sample sizes.
+sampleSizeTraining   <- floor(fractionTraining   * nrow(whiteData2))
+sampleSizeValidation <- floor(fractionValidation * nrow(whiteData2))
+sampleSizeTest       <- floor(fractionTest       * nrow(whiteData2))
+
+# Creates the randomly-sampled indices for the dataframe. Usees setdiff() to avoid overlapping subsets of indices.
+indicesTraining    <- sort(sample(seq_len(nrow(whiteData2N)), size=sampleSizeTraining))
+indicesNotTraining <- setdiff(seq_len(nrow(whiteData2N)), indicesTraining)
+indicesValidation  <- sort(sample(indicesNotTraining, size=sampleSizeValidation))
+indicesTest        <- setdiff(indicesNotTraining, indicesValidation)
+
+# Output the three dataframes for training, validation and test.
+dfTraining   <- whiteData2N[indicesTraining, ]
+dfValidation <- whiteData2N[indicesValidation, ]
+dfTest       <- whiteData2N[indicesTest, ]
+
+# Creates labels for the three datasets
+trainingLabels <- whiteData2[indicesTraining, 13]
+validationLabels <- whiteData2[indicesValidation, 13]
+testLabels <- whiteData2[indicesTest, 13]
+```
+
+
+```{r}
+#5. loads and trains the k-Nearest Neighbours classifiers for k = 1, .., 80;
+accuracy <- rep(0,80)
+for (k in 1:80){
+  pred <- knn(train = dfTraining, test = dfValidation, cl = trainingLabels, k = k)
+  conf_matrix <- table(validationLabels,pred)
+  accuracy[k] <-sum(diag(conf_matrix)/sum(conf_matrix)) 
+}
+
+plot(1:80,accuracy,xlab='k')
+
+#6. evaluates each classifier on the validation set and selects the best classifier;
+#check which k has the highest accuracy 
+highA <- data.frame(1:80,accuracy)
+orderedHighA <- highA[order(accuracy,decreasing = TRUE),]
+orderedHighA
+```
+
+```{r}
+# 7. predicts the generalisation error using the test data set, 
+# as well as outputs the result in a confusion matrix.
+testSet <- knn(train = dfTraining, test = dfTest, cl = trainingLabels, k = orderedHighA[1,'X1.80'])
+confMatrixTest <- table(testLabels,testSet)
+accuracyTest <- sum(diag(confMatrixTest)/sum(confMatrixTest))
+accuracyTest
+
+#error
+1-accuracyTest
+```
+
