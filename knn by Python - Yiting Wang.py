@@ -58,9 +58,9 @@ knn_best = KNeighborsClassifier(n_neighbors = max_k)
 knn_best.fit(train_features, train_labels)
 accur_test = knn_best.score(test_features, test_labels)
 general_error = 1 - accur_test
-general_error
+print(general_error)
 
 from sklearn.metrics import confusion_matrix
 
 test_pred = knn_best.predict(test_features)
-confusion_matrix(test_labels, test_pred)
+print(confusion_matrix(test_labels, test_pred))
