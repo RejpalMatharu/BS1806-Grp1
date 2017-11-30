@@ -18,6 +18,7 @@ View(ww_df)
 
 
 #random df and split into training, validation and test data sets
+set.seed(123)
 ww_rand <- ww_df[sample(1:nrow(ww_df)), ]
 
 View(ww_rand)
