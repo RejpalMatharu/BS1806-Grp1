@@ -1,0 +1,94 @@
+---
+title: "knn by R - Yiting"
+author: "Yiting Wang"
+date: "2017-11-29"
+output: html_document
+---
+
+```{r}
+# loads the data file;
+white = read.csv("winequality-white.csv",sep = ";")
+
+# construct a new binary column !0good wine!1 
+library(dplyr)
+white <- mutate(white, good.wine = ifelse(quality >= 6, 1, 0))
+
+# shuffle the record before the split
+set.seed(123)
+white_shuffle <- white[sample(1:nrow(white)), ]
+#View(white_shuffle)
+```
+
+```{r}
+#  normalises the data according to the Z-score transform;
+white_11 = select(white_shuffle, 1:11)
+
+white_mean = white_11 %>% summarise_all(funs(mean))
+
+white_std = white_11 %>% summarise_all(funs(sd))
+
+white_normalised = data.frame()
+ 
+for (i in 1:nrow(white_11)) {
+ result = (white_11[i, ] - white_mean) / white_std
+ white_normalised = rbind(white_normalised, result)
+ }
+
+```
+
+```{r}
+# splits the data set 
+
+white_train = white_normalised[1:1960, ] # 1960 samples
+white_validation = white_normalised[1961:3429, ] # 1469 samples
+white_test = white_normalised[3430:4898, ] # 1469 samples 
+
+white_train_labels = as.factor(white_shuffle[1:1960, 13])
+white_validation_labels = as.factor(white_shuffle[1961:3429, 13])
+white_test_labels = as.factor(white_shuffle[3430:4898, 13])
+
+```
+
+
+```{r}
+#  loads and trains the k-Nearest Neighbours classifiers for k = 1, .., 80;
+white_validation_pred_df = data.frame()
+
+library(class)
+for (i in 1:80) {
+  white_validation_pred = knn(white_train, white_validation, white_train_labels, i)
+  white_validation_pred_df = rbind.data.frame (white_validation_pred_df, as.numeric(as.character(white_validation_pred)))
+}
+
+#View(white_validation_pred_df)
+```
+
+
+```{r}
+# evaluates each classifier on the validation set and selects the best classifier;
+v <- c()
+
+for (i in 1:80) {
+  accuracy = mean(as.numeric(as.character(white_validation_labels)) == white_validation_pred_df[i, ])
+  v <- append(v, accuracy)
+}
+
+
+best_k = which(v == max(v))
+best_k
+```
+
+```{r}
+# predicts the generalisation error using the test data set
+white_test_pred = knn(white_train, white_test, white_train_labels, k = 28)
+
+general_error <- mean(white_test_pred == white_test_labels)
+
+general_error
+```
+
+```{r}
+# confusion matrix
+library(gmodels)
+CrossTable(white_test_labels, white_test_pred, prop.chisq = FALSE)
+```
