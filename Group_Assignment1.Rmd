@@ -29,6 +29,7 @@ Yiting Wang - 01423116
 library(dplyr)
 library(class)
 library(xtable)
+library("data.table")
 options(xtable.comment = FALSE)
 ```
 
@@ -38,7 +39,7 @@ This dataset contains information on 4898 different white wines, including some 
 
 ```{r,warning=FALSE,message=FALSE}
 #load the data file (make sure to set your working directory) and adjust the format
-white.raw <- read.csv("winequality-white.csv", header = TRUE, sep = ";")
+white.raw <- fread("winequality-white.csv")
 col_names <- c('fixed acidity',"volatile acidity","citric acid",
                "residual sugar","chlorides",'free sulfur dioxide',
                'total sulfur dioxide',"density","pH","sulphates",
