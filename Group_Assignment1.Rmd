@@ -116,7 +116,7 @@ test.labels <- white.new[indicesTest, 13]
 
 The result shows that the best model that returned the highest percentage of correctly classified wines occurred when $k=9$, with an accuracy of $77\%$.
 
-```{r,warning=FALSE,message=FALSE}
+```{r,warning=FALSE,message=FALSE,results='asis'}
 range <- 1:80
 accuracy <- rep(0,80)
 
@@ -128,7 +128,9 @@ for (k in range){
   accuracy[k] <-sum(diag(conf_matrix)/sum(conf_matrix)) 
 }
 
-```{r,results='asis',message=FALSE}
+```
+
+```{r,warning=FALSE,message=FALSE,results='asis'}
 #check which k gives the highest accuracy 
 a <- data.frame(range,accuracy)
 title= c('k','accuracy')
