@@ -37,7 +37,7 @@ options(xtable.comment = FALSE)
 This dataset contains information on 4898 different white wines, including some aspects of their chemical composition and their quality. 
 
 ```{r,warning=FALSE,message=FALSE}
-#load the data file and adjust the format
+#load the data file (make sure to set your working directory) and adjust the format
 white.raw <- read.csv("winequality-white.csv", header = TRUE, sep = ";")
 col_names <- c('fixed acidity',"volatile acidity","citric acid",
                "residual sugar","chlorides",'free sulfur dioxide',
@@ -165,7 +165,7 @@ accuracy_test <- sum(diag(conf_matrix_test)/sum(conf_matrix_test))
 
 &nbsp;
 
-In conclusion, the selected prediction model gives a relatively high accuracy compared to the naive model. In a naive model, given the training dataset used, a naive model would predict all wines to be a good wine, as the majority (1305 of 1959) wines in the training data are good wines. Using this prediction, it would have correctly classified 966 of the 1469 wines in the test dataset, for a total accuracy of 65.7%. Therefore, the selected classifier gives a substaintially better prediction result.
+In conclusion, the selected prediction model gives a relatively high accuracy compared to the naive model. In a naive model, given the training dataset used, a naive model would have predicted the majority of wines to be a good wine, as 1305 of 1959 wines in the training data are good wines. Using this prediction, it would have correctly classified only 966 of the 1469 wines in the test dataset, for a total accuracy of 65.7%. However, the selected classifier gives a substaintially better prediction result of 77%, 11 percentage points more accurate than the naive model in comparison.
 
 
 
