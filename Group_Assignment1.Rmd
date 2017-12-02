@@ -29,7 +29,7 @@ Yiting Wang - 01423116
 library(dplyr)
 library(class)
 library(xtable)
-library("data.table")
+library(data.table)
 options(xtable.comment = FALSE)
 ```
 
